@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".", // ✅ This is correct
+    "paths": {
+      "@/*": ["./app/*"],                  // for files in `app/`
+      "@/components/*": ["./components/*"],// for files in `components/`
+      "@/context/*": ["./context/*"],      // for files in `context/`
+      "@/types/*": ["./types/*"]           // for files in `types/`
+    }
+  }
+}

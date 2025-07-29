@@ -1,0 +1,134 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String     @id @default(uuid())
+  name        String
+  description String?
+  price       Float
+  category    String
+  inventory   Inventory[]
+  prescriptions Prescription[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Inventory {
+  id        String   @id @default(uuid())
+  product   Product  @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int      @default(0)
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  branchId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Branch {
+  id         String     @id @default(uuid())
+  name       String
+  address    String
+  phone      String?
+  email      String?
+  inventory  Inventory[]
+  orders     Order[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  phone     String?
+  address   String?
+  orders    Order[]
+  prescriptions Prescription[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Prescription {
+  id          String   @id @default(uuid())
+  customer    Customer @relation(fields: [customerId], references: [id])
+  customerId  String
+  doctorName  String
+  licenseNumber String?
+  products    Product[]
+  status      PrescriptionStatus @default(PENDING)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Order {
+  id          String   @id @default(uuid())
+  customer    Customer @relation(fields: [customerId], references: [id])
+  customerId  String
+  items       OrderItem[]
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  branchId    String
+  prescription Prescription? @relation(fields: [prescriptionId], references: [id])
+  prescriptionId String?
+  status      OrderStatus @default(PENDING)
+  payment     Payment?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  price     Float
+}
+
+model Payment {
+  id           String   @id @default(uuid())
+  order        Order    @relation(fields: [orderId], references: [id])
+  orderId      String
+  amount       Float
+  method       PaymentMethod
+  mpesaCode    String?
+  status       PaymentStatus @default(PENDING)
+  processedAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+enum PaymentMethod {
+  MPESA
+  CASH
+  CARD
+  INSURANCE
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
+}
+
+enum PrescriptionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FULFILLED
+}
